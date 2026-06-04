@@ -1,0 +1,133 @@
+# =========================
+
+# Environment Variables
+
+# =========================
+
+.env
+.env.local
+.env.*.local
+
+# =========================
+
+# Node.js
+
+# =========================
+
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# =========================
+
+# React / Vite
+
+# =========================
+
+dist/
+build/
+.vite/
+
+# =========================
+
+# Python
+
+# =========================
+
+**pycache**/
+*.pyc
+*.pyo
+*.pyd
+*.so
+.pytest_cache/
+.mypy_cache/
+
+# Virtual Environments
+
+venv/
+.venv/
+env/
+
+# =========================
+
+# IDE
+
+# =========================
+
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# =========================
+
+# Docker
+
+# =========================
+
+docker-data/
+*.log
+
+# =========================
+
+# MongoDB / Redis Data
+
+# =========================
+
+mongodb_data/
+redis_data/
+
+# =========================
+
+# Videos & Datasets
+
+# =========================
+
+videos/*.mp4
+videos/*.avi
+videos/*.mov
+videos/*.mkv
+datasets/
+
+# Keep folder structure
+
+!videos/.gitkeep
+
+# =========================
+
+# Reports
+
+# =========================
+
+reports/
+*.pdf
+
+# =========================
+
+# Model Files
+
+# =========================
+
+*.pt
+*.onnx
+*.weights
+
+# =========================
+
+# Coverage
+
+# =========================
+
+coverage/
+.coverage
+
+# =========================
+
+# OS Files
+
+# =========================
+
+Thumbs.db
+.DS_Store
