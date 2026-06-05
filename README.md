@@ -26,7 +26,7 @@ streams live analytics and alerts to a production-grade dashboard.*
 ![YOLOv8](https://img.shields.io/badge/YOLOv8-Ultralytics-111827?style=for-the-badge&logoColor=white)
 ![ByteTrack](https://img.shields.io/badge/ByteTrack-Multi--Object_Tracking-FF6B35?style=for-the-badge&logoColor=white)
 ![OpenCV](https://img.shields.io/badge/OpenCV-5C3EE8?style=for-the-badge&logo=opencv&logoColor=white)
-![Gemini](https://img.shields.io/badge/Gemini_Vision_API-4285F4?style=for-the-badge&logo=google&logoColor=white)
+![Gemini](https://img.shields.io/badge/Gemini_2.0_Flash-4285F4?style=for-the-badge&logo=google&logoColor=white)
 ![Shapely](https://img.shields.io/badge/Shapely-ROI_Zones-228B22?style=for-the-badge&logoColor=white)
 ![Pydantic](https://img.shields.io/badge/Pydantic-E92063?style=for-the-badge&logo=pydantic&logoColor=white)
 
@@ -54,7 +54,7 @@ streams live analytics and alerts to a production-grade dashboard.*
 ### 🐳 DevOps
 
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
-![Docker Compose](https://img.shields.io/badge/Docker_Compose-Multi--Service-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![Docker Compose](https://img.shields.io/badge/Docker_Compose-Infrastructure_only-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 
 ---
 
@@ -80,7 +80,7 @@ streams live analytics and alerts to a production-grade dashboard.*
 ```
 store-intelligence/
 │
-├── docker-compose.yml              # Wires all 5 services together
+├── docker-compose.yml              # Redis + MongoDB only (see Quick Start)
 ├── .env.example                    # Copy → .env and fill GEMINI_API_KEY
 ├── videos/                         # Drop your .mp4 files here
 │
@@ -95,15 +95,16 @@ store-intelligence/
 │   ├── routers/
 │   │   ├── stream.py               # Start / stop / status endpoints
 │   │   └── zones.py                # CRUD for restricted zones
+│   ├── config.py                   # Reads .env from both ./  and ../
 │   └── main.py                     # FastAPI entry point
 │
 ├── api-service/                    # Node.js · Express · Socket.io
 │   ├── models/
-│   │   ├── Detection.js            # Throttled frame snapshots (10s, 30d TTL)
+│   │   ├── Detection.js            # Throttled snapshots (10s, 30-day TTL)
 │   │   ├── Alert.js                # Individual alert events
 │   │   └── DailyStat.js            # Pre-aggregated per-day stats
 │   ├── services/
-│   │   ├── alertEngine.js          # Dedup + severity + message normalisation
+│   │   ├── alertEngine.js          # Secondary dedup + severity + message
 │   │   ├── eventProcessor.js       # Redis subscriber + accumulator + DB flush
 │   │   ├── statsService.js         # Date-range aggregation queries
 │   │   └── reportService.js        # PDFKit report builder
@@ -118,9 +119,9 @@ store-intelligence/
         ├── store/useAlertStore.js  # Zustand global state
         ├── hooks/
         │   ├── useSocket.js        # Socket.io connection + event handlers
-        │   └── useStats.js        # REST polling for today's stats
+        │   └── useStats.js         # REST polling for today's stats
         ├── components/
-        │   ├── charts/             # PeopleChart, VehicleChart, AlertsChart
+        │   ├── charts/             # PeopleChart · VehicleChart · AlertsChart
         │   ├── AlertPanel.jsx      # Live alert feed
         │   └── StatsSidebar.jsx    # Date picker + stats + report button
         └── pages/Dashboard.jsx     # Main page layout
@@ -128,58 +129,127 @@ store-intelligence/
 
 ---
 
+## 📄 Documentation
+
+| File | Contents |
+|---|---|
+| `README.md` | Setup, running instructions, API reference |
+| `DESIGN.md` | System architecture, component design, data flows, AI-Assisted Decisions |
+| `CHOICES.md` | Model selection, schema design, API architecture decisions |
+| `events.jsonl` | Sample event log in JSONL format |
+
+---
+
 ## ⚙️ Prerequisites
 
-- **Docker** and **Docker Compose** installed
-- A **Google Gemini API key** — get one free at [aistudio.google.com](https://aistudio.google.com/app/apikey)
-- A video file (`.mp4`) **or** an RTSP stream URL from your camera
+- **Docker Desktop** (for Redis + MongoDB infrastructure only)
+- **Python 3.11** with `pip`
+- **Node.js 20** with `npm`
+- **Google Gemini API key** — get one free at [aistudio.google.com](https://aistudio.google.com/app/apikey)
+- **ffmpeg** — for converting CCTV video to H.264 (required for some camera formats)
+- A video file (`.mp4`) or an RTSP stream URL
 
-> **No GPU required.** YOLOv8n runs comfortably on CPU. For better accuracy at higher FPS, use `yolov8m.pt` and a machine with a CUDA GPU.
+```bash
+# Install ffmpeg (Mac)
+brew install ffmpeg
+```
+
+> **Apple Silicon (M1/M2/M3) note:** Run cv-service, api-service, and dashboard natively on Mac. Only Redis and MongoDB run in Docker. See Quick Start below.
 
 ---
 
 ## 🚀 Quick Start
 
-### 1 — Clone and configure
+> **Important:** Run services natively on Mac for best performance. Docker is used only for Redis and MongoDB (lightweight infrastructure). Running cv-service in Docker on Apple Silicon causes extremely slow PyTorch installation due to VM overhead.
+
+### Step 1 — Clone and configure
 
 ```bash
 git clone https://github.com/your-username/store-intelligence.git
 cd store-intelligence
 
 cp .env.example .env
-# Open .env and set GEMINI_API_KEY + VIDEO_SOURCE
+# Open .env and set GEMINI_API_KEY and VIDEO_SOURCE
 ```
 
-### 2 — Add your video
+### Step 2 — Add your video
 
 ```bash
-mkdir videos
+mkdir -p videos
 cp /path/to/your/footage.mp4 videos/sample.mp4
 ```
 
-### 3 — Start all services
-
+**If your footage is from a CP Plus / H.265 camera, convert it first:**
 ```bash
-docker-compose up --build
+ffmpeg -i videos/sample.mp4 -vcodec libx264 -crf 23 videos/converted.mp4
+# Then set VIDEO_SOURCE=../videos/converted.mp4 in .env
 ```
 
-All five services start in dependency order: `redis` → `mongodb` → `cv-service` + `api-service` → `dashboard`.
+### Step 3 — Start Redis and MongoDB
 
-| Service | URL |
-|---|---|
-| 🖥️ Dashboard | http://localhost:5173 |
-| ⚙️ API Service | http://localhost:3000 |
-| 🤖 CV Service | http://localhost:8000 |
-| 🗄️ MongoDB | localhost:27017 |
-| 📨 Redis | localhost:6379 |
+```bash
+docker-compose up redis mongodb -d
+```
 
-### 4 — Start the detection pipeline
+### Step 4 — Install and run cv-service
+
+```bash
+cd cv-service
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+### Step 5 — Install and run api-service (new terminal)
+
+```bash
+cd api-service
+npm install
+node server.js
+```
+
+### Step 6 — Install and run dashboard (new terminal)
+
+```bash
+cd dashboard
+npm install
+npm run dev
+```
+
+### Step 7 — Start the detection pipeline
 
 ```bash
 curl -X POST http://localhost:8000/stream/start
 ```
 
-Open the dashboard — you should see live counts and charts updating within seconds.
+Open **http://localhost:5173** — the dashboard will show live detections within seconds.
+
+---
+
+## ✅ Expected Terminal Output
+
+```bash
+# Redis + MongoDB
+✅ Container store-intelligence-mongodb-1  Running
+✅ Container store-intelligence-redis-1    Running
+
+# cv-service
+INFO: Uvicorn running on http://0.0.0.0:8000
+Redis publisher connected.
+[Frame 2] → 5 people, 0 vehicles
+[Frame 4] → 6 people, 1 vehicles
+
+# api-service
+✅ MongoDB connected
+✅ Redis subscribed → store:detections, store:alerts
+✅ Socket.io initialized
+✅ API Service → http://localhost:3000
+🔌 Dashboard connected: <socket_id>
+
+# dashboard
+VITE ready at http://localhost:5173
+```
 
 ---
 
@@ -188,15 +258,17 @@ Open the dashboard — you should see live counts and charts updating within sec
 | Variable | Default | Description |
 |---|---|---|
 | `GEMINI_API_KEY` | — | **Required.** Google AI Studio key |
-| `VIDEO_SOURCE` | `./videos/sample.mp4` | `.mp4` path or `rtsp://` URL |
+| `VIDEO_SOURCE` | `../videos/sample.mp4` | `.mp4` path (relative to cv-service/) or `rtsp://` URL |
 | `YOLO_MODEL` | `yolov8n.pt` | Model size: `n` (fast) · `m` · `l` · `x` (accurate) |
 | `CROWD_THRESHOLD` | `10` | People count that triggers a crowd alert |
 | `ABNORMAL_CHECK_INTERVAL` | `5` | Seconds between Gemini abnormal activity checks |
 | `GENDER_CACHE_TTL` | `30` | Seconds to cache Gemini gender result per track ID |
 | `FRAME_SKIP` | `2` | Process every Nth frame — higher = faster, lower accuracy |
-| `REDIS_URL` | `redis://redis:6379` | Redis connection string |
-| `MONGO_URI` | `mongodb://mongodb:27017/store_intelligence` | MongoDB URI |
+| `REDIS_URL` | `redis://localhost:6379` | Redis connection string |
+| `MONGO_URI` | `mongodb://localhost:27017/store_intelligence` | MongoDB URI |
 | `PORT` | `3000` | API service port |
+
+> **Note:** When running natively (not in Docker), use `redis://localhost:6379` and `mongodb://localhost:27017/...`. When running fully in Docker, use `redis://redis:6379` and `mongodb://mongodb:27017/...`.
 
 ---
 
@@ -230,13 +302,13 @@ POST /api/reports/generate
 ### CV Service
 
 ```
-POST /stream/start?source=<optional override>  → start pipeline
-POST /stream/stop                              → stop pipeline
-GET  /stream/status                            → { running: true|false }
-POST /zones/                                   → create a restricted zone
-GET  /zones/                                   → list all zones
-GET  /zones/{zone_id}                          → get a specific zone
-DEL  /zones/{zone_id}                          → delete a zone
+POST /stream/start?source=<optional>  → start pipeline
+POST /stream/stop                     → stop pipeline
+GET  /stream/status                   → { running: true|false }
+POST /zones/                          → create restricted zone
+GET  /zones/                          → list all zones
+GET  /zones/{zone_id}                 → get a specific zone
+DEL  /zones/{zone_id}                 → delete a zone
 ```
 
 ---
@@ -251,14 +323,14 @@ and export the pixel coordinates.
 curl -X POST http://localhost:8000/zones/ \
   -H "Content-Type: application/json" \
   -d '{
-    "zone_id":   "zone-server-room",
-    "name":      "Server Room",
+    "zone_id":   "zone-storage",
+    "name":      "Storage Room",
     "camera_id": "cam1",
     "points":    [[100,100],[400,100],[400,350],[100,350]]
   }'
 ```
 
-An intrusion alert fires as soon as any person's centroid enters the polygon.
+An intrusion alert fires when any person's centroid enters the polygon.
 A 15-second cooldown per `track_id` prevents alert spam for the same person.
 
 ---
@@ -270,47 +342,45 @@ Video file / RTSP stream
         │
         ▼
   CV Service  (Python · FastAPI)
-  ┌─────────────────────────────────────────────────┐
-  │  OpenCV → extract frames (every Nth frame)      │
-  │  YOLOv8 → detect person / car / truck / ...     │
-  │  ByteTrack → assign persistent track IDs        │
-  │  Shapely → centroid ∈ restricted polygon?       │
-  │    └─ YES → publish intrusion alert             │
-  │  CrowdDetector → count > threshold & 3 frames?  │
-  │    └─ YES → publish crowd alert                 │
-  │  Gemini Vision (every 5s) → abnormal activity?  │
-  │    └─ YES → publish abnormal alert              │
-  │  Gemini Vision (cached 30s/ID) → gender per ID  │
-  └─────────────────────────────────────────────────┘
+  ┌────────────────────────────────────────────────┐
+  │  OpenCV → extract frames (every Nth frame)     │
+  │  YOLOv8 → detect person / car / truck / ...    │
+  │  ByteTrack → assign persistent track IDs       │
+  │  Shapely → centroid inside restricted zone?    │
+  │    └─ YES → publish intrusion alert            │
+  │  CrowdDetector → count > threshold & 3 frames? │
+  │    └─ YES → publish crowd alert                │
+  │  Gemini Vision (every 5s) → abnormal activity? │
+  │    └─ YES → publish abnormal alert             │
+  │  Gemini Vision (cached 30s/ID) → gender        │
+  └────────────────────────────────────────────────┘
         │
-        ▼  Redis Pub/Sub
-             store:detections  ─────────────────────────┐
-             store:alerts  ──────────────────────────────┤
-        │                                                │
-        ▼                                                │
-  API Service  (Node.js · Express)                       │
-  ┌──────────────────────────────────────────────────┐   │
-  │  alertEngine.js → dedup + severity + format      │◄──┘
-  │  eventProcessor.js → accumulate unique track IDs │
-  │    └─ flush → DailyStat (every 5s)               │
-  │    └─ snapshot → Detection (every 10s, 30d TTL)  │
-  │  Socket.io → emit live counts + alert:new        │
-  └──────────────────────────────────────────────────┘
+        ▼  Redis Pub/Sub (store:detections · store:alerts)
+        │
+        ▼
+  API Service  (Node.js · Express)
+  ┌────────────────────────────────────────────────┐
+  │  alertEngine.js → dedup + severity + format    │
+  │  eventProcessor → unique track ID accumulation │
+  │    └─ flush → DailyStat every 5s              │
+  │    └─ snapshot → Detection every 10s (30d TTL)│
+  │  Socket.io → emit live counts + alert:new      │
+  └────────────────────────────────────────────────┘
         │
         ▼  WebSocket + REST
   React Dashboard
-  ┌──────────────────────────────────────────────────┐
-  │  Stat cards: People Today / Vehicles / Alerts    │
-  │  PeopleChart  → live line chart (last 40 pts)    │
-  │  VehicleChart → doughnut by type                 │
-  │  AlertsChart  → bar by alert type               │
-  │  AlertPanel   → live scrolling feed              │
-  │  StatsSidebar → date/range picker                │
-  │    ├─ people + gender breakdown                  │
-  │    ├─ vehicles by type                           │
-  │    ├─ alert log (type + time)                    │
-  │    └─ 📄 Generate PDF Report button             │
-  └──────────────────────────────────────────────────┘
+  ┌────────────────────────────────────────────────┐
+  │  Stat cards: People / Vehicles / Alerts Today  │
+  │  PeopleChart  → live line chart (40 readings)  │
+  │  VehicleChart → doughnut by vehicle type       │
+  │  AlertsChart  → bar by alert type             │
+  │  AlertPanel   → live scrolling alert feed      │
+  │  StatsSidebar → date/range picker              │
+  │    ├─ people + gender breakdown                │
+  │    ├─ vehicles by type                         │
+  │    ├─ alert log (type + time)                  │
+  │    └─ 📄 Generate PDF Report                  │
+  └────────────────────────────────────────────────┘
 ```
 
 ---
@@ -319,26 +389,46 @@ Video file / RTSP stream
 
 | Decision | Choice | Reasoning |
 |---|---|---|
-| Detection model | YOLOv8n | Best speed/accuracy trade-off; native ByteTrack integration via Ultralytics |
-| Tracking | ByteTrack | Maintains persistent IDs across frames — essential for unique person counting |
-| Abnormal detection | Gemini Vision API | Sampled every 5s; complex scene understanding without a custom-trained model |
-| Gender detection | Gemini Vision API | Cached 30s per track ID; avoids API rate limits at 15fps |
-| Event bus | Redis Pub/Sub | Decouples CV service from API; horizontally scalable; same pattern as CollabDocs |
-| Unique counting | In-memory Set of track IDs | Prevents double-counting the same person across frames; resets at midnight |
-| DB write strategy | Throttled flush (5s DailyStat · 10s Detection) | Prevents write storms from frame-rate detection events |
-| Alert deduplication | Two-layer (CV service + alertEngine.js) | CV handles per-detection cooldown; Node.js catches any cross-session duplicates |
-| Report generation | PDFKit server-side | Produces consistent PDFs without browser rendering quirks |
-| Detection TTL | 30-day MongoDB TTL index | Auto-expires old snapshots — no cron job needed |
+| Detection model | YOLOv8n | Best speed/accuracy for CPU; native ByteTrack + multi-class in one pass |
+| Tracking | ByteTrack | Persistent IDs without Re-ID model; handles occlusion |
+| Abnormal detection | Gemini 2.0 Flash | Open-ended scene understanding; sampled every 5s to control cost |
+| Gender detection | Gemini 2.0 Flash | Cached 30s per track ID; no separate CV model needed |
+| Event bus | Redis Pub/Sub | Decouples services; same pattern as prior CollabDocs project |
+| Unique counting | In-memory Set of track IDs | Prevents double-counting same person across frames |
+| DB write strategy | 5s flush (DailyStat) · 10s snapshot (Detection) | Prevents write storms at 15fps detection rate |
+| Alert deduplication | Two layers: CV service + alertEngine.js | CV handles per-detection cooldown; Node.js catches cross-session duplicates |
+| Report generation | PDFKit server-side | Consistent output; streams binary response without temp files |
+| Detection TTL | 30-day MongoDB TTL index | Auto-expiry with no cron job needed |
+
+See [DESIGN.md](./DESIGN.md) and [CHOICES.md](./CHOICES.md) for full reasoning.
+
+---
+
+## 🛠️ Troubleshooting
+
+| Problem | Fix |
+|---|---|
+| `libgl1-mesa-glx has no installation candidate` | Replace with `libgl1` in cv-service/Dockerfile (Apple Silicon issue) |
+| `PyTorch install takes 1+ hour in Docker` | Run cv-service natively — `pip install` on Apple Silicon is 10x faster |
+| `Cannot open video source` | Check VIDEO_SOURCE path — use `../videos/filename.mp4` when running natively |
+| `OpenCV: Couldn't read video stream` | Convert video with `ffmpeg -i input.mp4 -vcodec libx264 output.mp4` (H.265 → H.264) |
+| `EADDRINUSE: port already in use` | Run `lsof -ti:3000 | xargs kill -9` (or 8000 / 5173) |
+| `MongooseServerSelectionError` | Run `docker-compose up redis mongodb -d` before starting api-service |
+| `ValidationError: gemini_api_key missing` | Add `env_file = (".env", "../.env")` to config.py Settings.Config |
+| `UnpicklingError loading YOLO weights` | Run `pip install -U ultralytics` (PyTorch 2.6 compatibility fix) |
+| `gemini-1.5-flash not found` | Update model name to `gemini-2.0-flash` in gemini_client.py |
+| Dashboard shows all zeros | Check cv-service terminal for frame logs — `[Frame N] → X people` |
 
 ---
 
 ## ⚠️ Known Limitations
 
-- **Track ID reuse** — ByteTrack IDs reset when a video file loops, which may slightly overcount unique people. In production, use a live RTSP stream.
-- **In-memory accumulators** — Unique track ID sets live in process RAM. A service restart mid-day resets the day's count. For production, persist accumulator state to Redis.
+- **Track ID reuse** — ByteTrack IDs reset when a video file loops, which may slightly overcount unique people. Use a live RTSP stream in production.
+- **In-memory accumulators** — Unique track ID Sets live in process RAM. A service restart mid-day resets the day's count. For production, persist accumulator state to Redis.
 - **Single camera** — Currently wired for `cam1`. Multi-camera support requires parallel CV service instances scoped by `cameraId`.
-- **Gender accuracy** — Gemini Vision classification depends on crop size and image quality; results are best-effort.
-- **No authentication** — API endpoints and the dashboard are public. Add JWT middleware (pattern already in LifeTracker) before any production deployment.
+- **Gender accuracy** — Gemini Vision classification depends on crop size and image quality; results are best-effort and not guaranteed.
+- **No authentication** — API endpoints and dashboard are unauthenticated. Add JWT middleware before any production deployment.
+- **H.265 video** — OpenCV on macOS cannot decode H.265 (common in IP cameras). Convert to H.264 using ffmpeg before processing.
 
 ---
 
