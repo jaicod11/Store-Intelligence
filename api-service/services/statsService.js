@@ -10,8 +10,6 @@ function _emptyDay(date, cameraId = 'cam1') {
         maleCount: 0,
         femaleCount: 0,
         unknownGenderCount: 0,
-        totalVehicles: 0,
-        vehicleBreakdown: { car: 0, truck: 0, motorcycle: 0, bus: 0, bicycle: 0 },
         alertCounts: { intrusion: 0, crowd: 0, abnormal: 0, total: 0 },
     };
 }

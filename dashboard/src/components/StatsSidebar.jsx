@@ -5,10 +5,6 @@ import useAlertStore from '../store/useAlertStore';
 
 const today = format(new Date(), 'yyyy-MM-dd');
 
-const VEHICLE_LABELS = { car: 'Cars', truck: 'Trucks', motorcycle: 'Motorcycles', bus: 'Buses', bicycle: 'Bicycles' };
-const ALERT_COLORS = { intrusion: 'text-red-400', crowd: 'text-amber-400', abnormal: 'text-purple-400' };
-const ALERT_BADGES = { intrusion: 'bg-red-600', crowd: 'bg-amber-500', abnormal: 'bg-purple-600' };
-
 function Row({ label, value, color = 'text-slate-300' }) {
     return (
         <div className="flex items-center justify-between py-0.5">
@@ -43,7 +39,6 @@ export default function StatsSidebar() {
     const [error, setError] = useState('');
 
     const display = stats || todayStats;
-    const vb = display?.vehicleBreakdown ?? {};
     const ac = display?.alertCounts ?? {};
 
     async function handleQuery() {
@@ -70,10 +65,6 @@ export default function StatsSidebar() {
                         acc.maleCount += s.maleCount || 0;
                         acc.femaleCount += s.femaleCount || 0;
                         acc.unknownGenderCount += s.unknownGenderCount || 0;
-                        acc.totalVehicles += s.totalVehicles || 0;
-                        Object.keys(acc.vehicleBreakdown).forEach((t) => {
-                            acc.vehicleBreakdown[t] += s.vehicleBreakdown?.[t] || 0;
-                        });
                         acc.alertCounts.intrusion += s.alertCounts?.intrusion || 0;
                         acc.alertCounts.crowd += s.alertCounts?.crowd || 0;
                         acc.alertCounts.abnormal += s.alertCounts?.abnormal || 0;
@@ -82,8 +73,6 @@ export default function StatsSidebar() {
                     },
                     {
                         totalPeople: 0, maleCount: 0, femaleCount: 0, unknownGenderCount: 0,
-                        totalVehicles: 0,
-                        vehicleBreakdown: { car: 0, truck: 0, motorcycle: 0, bus: 0, bicycle: 0 },
                         alertCounts: { intrusion: 0, crowd: 0, abnormal: 0, total: 0 },
                     }
                 );
@@ -119,11 +108,9 @@ export default function StatsSidebar() {
     return (
         <aside className="w-72 bg-slate-900 border-l border-slate-800 flex flex-col h-full overflow-hidden">
 
-            {/* Header + date picker */}
             <div className="p-4 border-b border-slate-800 space-y-3">
                 <p className="text-white text-sm font-semibold">Detailed Statistics</p>
 
-                {/* Mode toggle */}
                 <div className="flex rounded-lg overflow-hidden border border-slate-700">
                     {['date', 'range'].map((m) => (
                         <button
@@ -137,7 +124,6 @@ export default function StatsSidebar() {
                     ))}
                 </div>
 
-                {/* Date inputs */}
                 {mode === 'date' ? (
                     <input
                         type="date" value={selDate} max={today}
@@ -169,7 +155,6 @@ export default function StatsSidebar() {
                 </button>
             </div>
 
-            {/* Scrollable stats body */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {display && (
                     <>
@@ -178,13 +163,6 @@ export default function StatsSidebar() {
                             <Row label="Male" value={display.maleCount ?? 0} color="text-sky-400" />
                             <Row label="Female" value={display.femaleCount ?? 0} color="text-pink-400" />
                             <Row label="Unknown gender" value={display.unknownGenderCount ?? 0} />
-                        </Section>
-
-                        <Section title="Vehicles">
-                            <Row label="Total" value={display.totalVehicles ?? 0} color="text-emerald-400" />
-                            {Object.entries(VEHICLE_LABELS).map(([key, label]) => (
-                                <Row key={key} label={label} value={vb[key] ?? 0} />
-                            ))}
                         </Section>
 
                         <Section title="Alerts">
@@ -196,7 +174,6 @@ export default function StatsSidebar() {
                     </>
                 )}
 
-                {/* Alert log */}
                 {alerts && alerts.length > 0 && (
                     <div>
                         <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">Alert Log</p>
@@ -204,7 +181,7 @@ export default function StatsSidebar() {
                             {alerts.map((alert, i) => (
                                 <div key={alert._id || i} className="bg-slate-800 rounded-lg p-2.5 border border-slate-700">
                                     <div className="flex items-center justify-between mb-1">
-                                        <span className={`inline-flex items-center text-xs font-bold px-1.5 py-0.5 rounded text-white ${ALERT_BADGES[alert.alertType] || 'bg-slate-600'}`}>
+                                        <span className="inline-flex items-center text-xs font-bold px-1.5 py-0.5 rounded text-white bg-slate-600">
                                             {alert.alertType.toUpperCase()}
                                         </span>
                                         <span className="text-slate-500 text-xs font-mono">
@@ -223,7 +200,6 @@ export default function StatsSidebar() {
                 )}
             </div>
 
-            {/* Report button */}
             <div className="p-4 border-t border-slate-800">
                 <button
                     onClick={handleReport} disabled={reporting}

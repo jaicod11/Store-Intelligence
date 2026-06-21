@@ -21,8 +21,8 @@ export default function useSocket() {
         socket.on('connect', () => setConnected(true));
         socket.on('disconnect', () => setConnected(false));
 
-        socket.on('detection:update', ({ peopleCount, vehicleCount, timestamp }) =>
-            updateLiveCounts(peopleCount, vehicleCount, timestamp)
+        socket.on('detection:update', ({ peopleCount, timestamp }) =>
+            updateLiveCounts(peopleCount, timestamp)
         );
 
         socket.on('alert:new', (alert) => addAlert(alert));

@@ -5,7 +5,6 @@ import useAlertStore from '../store/useAlertStore';
 
 import TopBar from '../components/layout/TopBar';
 import PeopleChart from '../components/charts/PeopleChart';
-import VehicleChart from '../components/charts/VehicleChart';
 import AlertsChart from '../components/charts/AlertsChart';
 import AlertPanel from '../components/AlertPanel';
 import StatsSidebar from '../components/StatsSidebar';
@@ -25,7 +24,6 @@ export default function Dashboard() {
     useStats();
 
     const livePersonCount = useAlertStore((s) => s.livePersonCount);
-    const liveVehicleCount = useAlertStore((s) => s.liveVehicleCount);
     const todayStats = useAlertStore((s) => s.todayStats);
     const alerts = useAlertStore((s) => s.alerts);
 
@@ -34,22 +32,15 @@ export default function Dashboard() {
             <TopBar />
 
             <div className="flex flex-1 overflow-hidden">
-                {/* ── Main content ─────────────────────────────────────────── */}
                 <main className="flex-1 overflow-y-auto p-5 space-y-4">
 
                     {/* Stat cards */}
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 gap-4">
                         <StatCard
                             label="People Today"
                             value={todayStats?.totalPeople ?? 0}
                             sub={`${livePersonCount} in frame right now`}
                             colorClass="bg-blue-950 border-blue-800 text-blue-300"
-                        />
-                        <StatCard
-                            label="Vehicles Today"
-                            value={todayStats?.totalVehicles ?? 0}
-                            sub={`${liveVehicleCount} in frame right now`}
-                            colorClass="bg-emerald-950 border-emerald-800 text-emerald-300"
                         />
                         <StatCard
                             label="Alerts Today"
@@ -60,9 +51,8 @@ export default function Dashboard() {
                     </div>
 
                     {/* Charts */}
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 gap-4">
                         <PeopleChart />
-                        <VehicleChart />
                         <AlertsChart />
                     </div>
 
@@ -70,7 +60,6 @@ export default function Dashboard() {
                     <AlertPanel />
                 </main>
 
-                {/* ── Right sidebar ─────────────────────────────────────────── */}
                 <StatsSidebar />
             </div>
         </div>

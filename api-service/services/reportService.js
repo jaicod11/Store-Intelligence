@@ -15,10 +15,8 @@ function _row(doc, label, value) {
 }
 
 function generateReport(doc, { period, stats, alerts, generatedAt }) {
-    const vb = stats.vehicleBreakdown || {};
     const ac = stats.alertCounts || {};
 
-    // ── Header ──────────────────────────────────────────────────────────────
     doc.fontSize(26).font('Helvetica-Bold')
         .text('Store Intelligence Report', { align: 'center' });
     doc.moveDown(0.4);
@@ -35,18 +33,15 @@ function generateReport(doc, { period, stats, alerts, generatedAt }) {
     doc.fillColor('#000000');
     doc.moveDown(2);
 
-    // ── Summary ──────────────────────────────────────────────────────────────
     doc.fontSize(16).font('Helvetica-Bold').text('Summary');
     doc.moveDown(0.3);
     _divider(doc);
     doc.moveDown(0.5);
 
     _row(doc, 'Total people detected', stats.totalPeople || 0);
-    _row(doc, 'Total vehicles detected', stats.totalVehicles || 0);
     _row(doc, 'Total alerts triggered', ac.total || 0);
     doc.moveDown(1.5);
 
-    // ── People breakdown ─────────────────────────────────────────────────────
     doc.fontSize(16).font('Helvetica-Bold').text('People Breakdown');
     doc.moveDown(0.3);
     _divider(doc);
@@ -57,22 +52,6 @@ function generateReport(doc, { period, stats, alerts, generatedAt }) {
     _row(doc, 'Unknown gender', stats.unknownGenderCount || 0);
     doc.moveDown(1.5);
 
-    // ── Vehicle breakdown ────────────────────────────────────────────────────
-    doc.fontSize(16).font('Helvetica-Bold').text('Vehicle Breakdown');
-    doc.moveDown(0.3);
-    _divider(doc);
-    doc.moveDown(0.5);
-
-    [
-        ['Cars', vb.car || 0],
-        ['Trucks', vb.truck || 0],
-        ['Motorcycles', vb.motorcycle || 0],
-        ['Buses', vb.bus || 0],
-        ['Bicycles', vb.bicycle || 0],
-    ].forEach(([label, val]) => _row(doc, label, val));
-    doc.moveDown(1.5);
-
-    // ── Alert breakdown ──────────────────────────────────────────────────────
     doc.fontSize(16).font('Helvetica-Bold').text('Alert Breakdown');
     doc.moveDown(0.3);
     _divider(doc);
@@ -83,7 +62,6 @@ function generateReport(doc, { period, stats, alerts, generatedAt }) {
     _row(doc, 'Abnormal alerts', ac.abnormal || 0);
     doc.moveDown(1.5);
 
-    // ── Alert log ────────────────────────────────────────────────────────────
     doc.fontSize(16).font('Helvetica-Bold').text('Alert Log');
     doc.moveDown(0.3);
     _divider(doc);
@@ -111,7 +89,6 @@ function generateReport(doc, { period, stats, alerts, generatedAt }) {
         });
     }
 
-    // ── Footer ───────────────────────────────────────────────────────────────
     doc.fontSize(8).fillColor('#aaaaaa')
         .text(
             'Store Intelligence System  ·  Confidential',
