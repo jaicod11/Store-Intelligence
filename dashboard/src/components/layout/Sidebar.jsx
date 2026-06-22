@@ -17,7 +17,7 @@ const NAV_ITEMS = [
 
 // Pages that actually exist right now. Everything else is a no-op until
 // that page's HTML mockup is converted too.
-const BUILT_PAGES = ['dashboard', 'statistics'];
+const BUILT_PAGES = ['dashboard', 'statistics', 'reports'];
 
 export default function Sidebar({ activePage, onNavigate, camerasOnline = 0, camerasTotal = 0 }) {
     return (
