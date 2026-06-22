@@ -4,20 +4,12 @@ import useStats from '../hooks/useStats';
 import useAlertStore from '../store/useAlertStore';
 
 import TopBar from '../components/layout/TopBar';
+import Sidebar from '../components/layout/Sidebar';
+import StatCard from '../components/StatCard';
+import LiveFeed from '../components/LiveFeed';
 import PeopleChart from '../components/charts/PeopleChart';
 import AlertsChart from '../components/charts/AlertsChart';
 import AlertPanel from '../components/AlertPanel';
-import StatsSidebar from '../components/StatsSidebar';
-
-function StatCard({ label, value, sub, colorClass }) {
-    return (
-        <div className={`rounded-xl p-4 border ${colorClass}`}>
-            <p className="text-xs font-semibold uppercase tracking-widest mb-2 opacity-70">{label}</p>
-            <p className="text-4xl font-bold tabular-nums">{value}</p>
-            {sub && <p className="text-xs mt-1.5 opacity-50">{sub}</p>}
-        </div>
-    );
-}
 
 export default function Dashboard() {
     useSocket();
@@ -27,27 +19,49 @@ export default function Dashboard() {
     const todayStats = useAlertStore((s) => s.todayStats);
     const alerts = useAlertStore((s) => s.alerts);
 
+    const hasActiveAlert = alerts.length > 0;
+
     return (
-        <div className="h-screen flex flex-col bg-slate-950 overflow-hidden">
+        <div className="h-screen flex flex-col overflow-hidden" style={{ background: 'var(--background)' }}>
             <TopBar />
 
             <div className="flex flex-1 overflow-hidden">
-                <main className="flex-1 overflow-y-auto p-5 space-y-4">
+                {/* MOCK — 9 total / 8 online is hardcoded until a real camera registry exists */}
+                <Sidebar camerasOnline={8} camerasTotal={9} />
 
-                    {/* Stat cards */}
-                    <div className="grid grid-cols-2 gap-4">
+                <main className="flex-1 overflow-y-auto p-5 flex flex-col gap-4">
+
+                    {/* Stat cards — first two REAL, last two MOCK */}
+                    <div className="grid grid-cols-4 gap-4">
                         <StatCard
                             label="People Today"
                             value={todayStats?.totalPeople ?? 0}
                             sub={`${livePersonCount} in frame right now`}
-                            colorClass="bg-blue-950 border-blue-800 text-blue-300"
+                            color="primary"
                         />
                         <StatCard
                             label="Alerts Today"
                             value={todayStats?.alertCounts?.total ?? 0}
-                            sub={`${alerts.length} loaded in feed`}
-                            colorClass="bg-red-950 border-red-900 text-red-300"
+                            sub={`${alerts.length} active in feed`}
+                            color="alert"
                         />
+                        {/* MOCK — multi-camera registry not built yet */}
+                        <StatCard label="Cameras Online" value="8" sub="of 9 total cameras" color="info" />
+                        {/* MOCK — dwell-time tracking not built yet */}
+                        <StatCard label="Avg Dwell Time" value="4.2m" sub="per customer visit" color="warning" />
+                    </div>
+
+                    {/* Camera tiles — tile 1 REAL, tiles 2 & 3 MOCK */}
+                    <div className="grid grid-cols-3 gap-4">
+                        <LiveFeed
+                            camId="CAM-01"
+                            location="Main Entrance"
+                            personsCount={livePersonCount}
+                            hasAlert={hasActiveAlert}
+                            isLive
+                        />
+                        <LiveFeed camId="CAM-03" location="Checkout Area" personsCount={3} hasAlert isLive={false} />
+                        <LiveFeed camId="CAM-06" location="Back Storage" personsCount={3} hasAlert isLive={false} />
                     </div>
 
                     {/* Charts */}
@@ -56,11 +70,8 @@ export default function Dashboard() {
                         <AlertsChart />
                     </div>
 
-                    {/* Live alert feed */}
                     <AlertPanel />
                 </main>
-
-                <StatsSidebar />
             </div>
         </div>
     );

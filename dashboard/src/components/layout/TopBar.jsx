@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
+import { Camera, User } from 'lucide-react';
 import useAlertStore from '../../store/useAlertStore';
+
+const NAV_LINKS = ['Dashboard', 'Cameras', 'Reports', 'Settings'];
 
 export default function TopBar() {
     const isConnected = useAlertStore((s) => s.isConnected);
@@ -12,50 +15,59 @@ export default function TopBar() {
     }, []);
 
     return (
-        <header className="h-14 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-5 flex-shrink-0">
-            {/* Logo */}
+        <header
+            className="flex items-center justify-between px-6 py-3 border-b flex-shrink-0"
+            style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+        >
             <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                            d="M15 10l4.553-2.069A1 1 0 0121 8.87V15.13a1 1 0 01-1.447.9L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" />
-                    </svg>
+                <div className="rounded-md w-8 h-8 flex items-center justify-center" style={{ background: 'var(--primary)' }}>
+                    <Camera size={16} style={{ color: 'var(--primary-foreground)' }} />
                 </div>
                 <div>
-                    <p className="text-white text-sm font-semibold leading-none">Store Intelligence</p>
-                    <p className="text-slate-500 text-xs mt-0.5">AI-powered CCTV Analytics</p>
+                    <div className="font-bold text-sm" style={{ color: 'var(--foreground)' }}>Store Intelligence</div>
+                    <div className="text-xs" style={{ color: 'var(--muted-foreground)' }}>AI-powered CCTV Analytics</div>
                 </div>
             </div>
 
-            {/* Right cluster */}
-            <div className="flex items-center gap-5">
-                {/* Connection status */}
-                <div className="flex items-center gap-2">
-                    {isConnected ? (
-                        <>
-                            <span className="relative flex h-2 w-2">
-                                <span className="animate-ping absolute inset-0 rounded-full bg-emerald-400 opacity-75" />
-                                <span className="relative rounded-full h-2 w-2 bg-emerald-500" />
-                            </span>
-                            <span className="text-emerald-400 text-xs font-semibold tracking-wide">LIVE</span>
-                        </>
-                    ) : (
-                        <>
-                            <span className="h-2 w-2 rounded-full bg-red-500" />
-                            <span className="text-red-400 text-xs font-semibold">OFFLINE</span>
-                        </>
-                    )}
+            <nav className="flex items-center gap-6">
+                {NAV_LINKS.map((link) => (
+                    <button key={link} className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
+                        {link}
+                    </button>
+                ))}
+            </nav>
+
+            <div className="flex items-center gap-4">
+                <div
+                    className="flex items-center gap-2 px-3 py-1 rounded-md border"
+                    style={{ background: 'var(--muted)', borderColor: 'var(--border)' }}
+                >
+                    <div
+                        className="w-2 h-2 rounded-full"
+                        style={{ background: isConnected ? 'var(--primary)' : 'var(--alert)' }}
+                    />
+                    <span className="text-sm font-bold" style={{ color: isConnected ? 'var(--primary)' : 'var(--alert)' }}>
+                        {isConnected ? 'LIVE' : 'OFFLINE'}
+                    </span>
                 </div>
 
-                {/* Camera badge */}
-                <span className="bg-slate-800 border border-slate-700 text-slate-300 text-xs px-2.5 py-1 rounded-full font-mono">
+                <div
+                    className="px-3 py-1 rounded-md border text-sm"
+                    style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--foreground)' }}
+                >
                     cam1
-                </span>
+                </div>
 
-                {/* Clock */}
                 <div className="text-right">
-                    <p className="text-white text-sm font-mono tabular-nums">{format(now, 'HH:mm:ss')}</p>
-                    <p className="text-slate-500 text-xs">{format(now, 'EEE, MMM d yyyy')}</p>
+                    <div className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>{format(now, 'HH:mm:ss')}</div>
+                    <div className="text-xs" style={{ color: 'var(--muted-foreground)' }}>{format(now, 'EEE, MMM d yyyy')}</div>
+                </div>
+
+                <div
+                    className="w-8 h-8 rounded-full border flex items-center justify-center"
+                    style={{ background: 'var(--secondary)', borderColor: 'var(--border)' }}
+                >
+                    <User size={14} style={{ color: 'var(--primary)' }} />
                 </div>
             </div>
         </header>

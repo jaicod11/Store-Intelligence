@@ -1,12 +1,11 @@
 import React from 'react';
-import { Line } from 'react-chartjs-2';
+import { Bar } from 'react-chartjs-2';
 import {
-    Chart as ChartJS, CategoryScale, LinearScale,
-    PointElement, LineElement, Filler, Tooltip,
+    Chart as ChartJS, CategoryScale, LinearScale, BarElement, Tooltip,
 } from 'chart.js';
 import useAlertStore from '../../store/useAlertStore';
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip);
+ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip);
 
 const OPTIONS = {
     responsive: true,
@@ -15,49 +14,43 @@ const OPTIONS = {
     plugins: {
         legend: { display: false },
         tooltip: {
-            backgroundColor: '#1e293b',
-            titleColor: '#94a3b8',
-            bodyColor: '#e2e8f0',
-            borderColor: '#334155',
+            backgroundColor: '#0e1812',
+            titleColor: '#5a7a65',
+            bodyColor: '#e8f5ef',
+            borderColor: '#1e2e24',
             borderWidth: 1,
         },
     },
     scales: {
         x: { display: false },
-        y: {
-            beginAtZero: true,
-            min: 0,
-            grid: { color: '#1e293b' },
-            ticks: { color: '#475569', stepSize: 1, font: { size: 11 } },
-        },
+        y: { display: false, beginAtZero: true },
     },
 };
 
+// REAL DATA — last 40 live readings from Socket.io, same source as before.
+// (Visually restyled as bars to match the new design; not hour-bucketed yet —
+// true hourly aggregation would need a new backend endpoint.)
 export default function PeopleChart() {
     const peopleHistory = useAlertStore((s) => s.peopleHistory);
-    const timeLabels = useAlertStore((s) => s.timeLabels);
 
     const data = {
-        labels: timeLabels,
+        labels: peopleHistory.map((_, i) => i),
         datasets: [{
-            label: 'People in frame',
             data: peopleHistory,
-            borderColor: '#3b82f6',
-            backgroundColor: 'rgba(59,130,246,0.12)',
-            borderWidth: 2,
-            pointRadius: 0,
-            tension: 0.4,
-            fill: true,
+            backgroundColor: peopleHistory.map((_, i) =>
+                i === peopleHistory.length - 1 ? '#22c55e' : '#14261b'
+            ),
+            borderRadius: 2,
         }],
     };
 
     return (
-        <div className="bg-slate-900 rounded-xl p-4 border border-slate-800">
-            <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-3">
+        <div className="rounded-lg p-4 flex flex-col gap-3 border" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
+            <div className="text-xs tracking-widest font-bold uppercase" style={{ color: 'var(--muted-foreground)' }}>
                 Live People Count
-            </p>
-            <div style={{ height: 140 }}>
-                <Line data={data} options={OPTIONS} />
+            </div>
+            <div style={{ height: 80 }}>
+                <Bar data={data} options={OPTIONS} />
             </div>
         </div>
     );

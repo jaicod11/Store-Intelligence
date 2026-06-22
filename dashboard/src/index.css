@@ -2,6 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+    --background: #0a0f0d;
+    --foreground: #e8f5ef;
+    --border: #1e2e24;
+    --input: #111a14;
+    --primary: #22c55e;
+    --primary-foreground: #0a0f0d;
+    --secondary: #14261b;
+    --secondary-foreground: #22c55e;
+    --muted: #1a2820;
+    --muted-foreground: #5a7a65;
+    --card: #0e1812;
+    --alert: #ff4d4d;
+    --alert-dim: #2a1010;
+    --warning: #f59e0b;
+    --info: #3b82f6;
+}
+
 * {
     box-sizing: border-box;
     margin: 0;
@@ -9,9 +27,9 @@
 }
 
 body {
-    font-family: system-ui, -apple-system, sans-serif;
-    background-color: #020817;
-    color: #e2e8f0;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    background-color: var(--background);
+    color: var(--foreground);
 }
 
 ::-webkit-scrollbar {
@@ -19,14 +37,10 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-    background: #1e293b;
+    background: var(--muted);
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #334155;
+    background: var(--border);
     border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #475569;
 }

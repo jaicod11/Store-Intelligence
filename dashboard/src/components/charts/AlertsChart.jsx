@@ -1,60 +1,42 @@
 import React from 'react';
-import { Bar } from 'react-chartjs-2';
-import {
-    Chart as ChartJS, CategoryScale, LinearScale, BarElement, Tooltip,
-} from 'chart.js';
 import useAlertStore from '../../store/useAlertStore';
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip);
-
-const OPTIONS = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-        legend: { display: false },
-        tooltip: {
-            backgroundColor: '#1e293b',
-            titleColor: '#94a3b8',
-            bodyColor: '#e2e8f0',
-            borderColor: '#334155',
-            borderWidth: 1,
-        },
-    },
-    scales: {
-        x: {
-            grid: { display: false },
-            ticks: { color: '#475569', font: { size: 11 } },
-        },
-        y: {
-            beginAtZero: true,
-            grid: { color: '#1e293b' },
-            ticks: { color: '#475569', stepSize: 1, font: { size: 11 } },
-        },
-    },
-};
-
+// Intrusion / Crowd / Anomaly use REAL counts from todayStats.alertCounts.
+// Loitering is MOCK (hardcoded 0) — not implemented in the backend yet.
 export default function AlertsChart() {
     const todayStats = useAlertStore((s) => s.todayStats);
     const ac = todayStats?.alertCounts ?? {};
 
-    const data = {
-        labels: ['Intrusion', 'Crowd', 'Abnormal'],
-        datasets: [{
-            data: [ac.intrusion ?? 0, ac.crowd ?? 0, ac.abnormal ?? 0],
-            backgroundColor: ['rgba(239,68,68,0.75)', 'rgba(245,158,11,0.75)', 'rgba(139,92,246,0.75)'],
-            borderColor: ['#ef4444', '#f59e0b', '#8b5cf6'],
-            borderWidth: 1,
-            borderRadius: 6,
-        }],
-    };
+    const bars = [
+        { label: 'Intrusion', value: ac.intrusion ?? 0, color: 'var(--alert)' },
+        { label: 'Crowd', value: ac.crowd ?? 0, color: 'var(--warning)' },
+        { label: 'Anomaly', value: ac.abnormal ?? 0, color: 'var(--info)' },
+        { label: 'Loitering', value: 0, color: 'var(--primary)' }, // MOCK
+    ];
+
+    const max = Math.max(1, ...bars.map((b) => b.value));
 
     return (
-        <div className="bg-slate-900 rounded-xl p-4 border border-slate-800">
-            <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-3">
+        <div className="rounded-lg p-4 flex flex-col gap-3 border" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
+            <div className="text-xs tracking-widest font-bold uppercase" style={{ color: 'var(--muted-foreground)' }}>
                 Alert Types Today
-            </p>
-            <div style={{ height: 140 }}>
-                <Bar data={data} options={OPTIONS} />
+            </div>
+            <div className="flex items-end gap-3" style={{ height: 80 }}>
+                {bars.map((b) => (
+                    <div key={b.label} className="flex-1 flex flex-col items-center justify-end gap-1">
+                        <div
+                            className="w-full rounded-sm"
+                            style={{ height: `${Math.max(4, (b.value / max) * 70)}px`, background: b.color }}
+                        />
+                    </div>
+                ))}
+            </div>
+            <div className="flex gap-3">
+                {bars.map((b) => (
+                    <div key={b.label} className="flex-1 text-center" style={{ fontSize: 9, color: 'var(--muted-foreground)' }}>
+                        {b.label}
+                    </div>
+                ))}
             </div>
         </div>
     );
