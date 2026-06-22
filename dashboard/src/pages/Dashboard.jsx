@@ -11,7 +11,7 @@ import PeopleChart from '../components/charts/PeopleChart';
 import AlertsChart from '../components/charts/AlertsChart';
 import AlertPanel from '../components/AlertPanel';
 
-export default function Dashboard() {
+export default function Dashboard({ onNavigate }) {
     useSocket();
     useStats();
 
@@ -27,7 +27,7 @@ export default function Dashboard() {
 
             <div className="flex flex-1 overflow-hidden">
                 {/* MOCK — 9 total / 8 online is hardcoded until a real camera registry exists */}
-                <Sidebar camerasOnline={8} camerasTotal={9} />
+                <Sidebar activePage="dashboard" onNavigate={onNavigate} camerasOnline={8} camerasTotal={9} />
 
                 <main className="flex-1 overflow-y-auto p-5 flex flex-col gap-4">
 
