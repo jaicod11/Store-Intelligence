@@ -11,7 +11,7 @@ export default function AlertsChart() {
         { label: 'Intrusion', value: ac.intrusion ?? 0, color: 'var(--alert)' },
         { label: 'Crowd', value: ac.crowd ?? 0, color: 'var(--warning)' },
         { label: 'Anomaly', value: ac.abnormal ?? 0, color: 'var(--info)' },
-        { label: 'Loitering', value: 0, color: 'var(--primary)' }, // MOCK
+        { label: 'Loitering', value: ac.loitering ?? 0, color: 'var(--primary)' }, // now REAL
     ];
 
     const max = Math.max(1, ...bars.map((b) => b.value));

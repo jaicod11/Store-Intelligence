@@ -17,6 +17,7 @@ export const statsApi = {
     getToday: () => http.get('/api/stats/today'),
     getByDate: (date) => http.get(`/api/stats?date=${date}`),
     getByRange: (from, to) => http.get(`/api/stats?from=${from}&to=${to}`),
+    getHourly: (date) => http.get(`/api/stats/hourly?date=${date}`),
 };
 
 export const alertsApi = {

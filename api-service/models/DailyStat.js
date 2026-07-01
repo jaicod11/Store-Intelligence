@@ -5,6 +5,7 @@ const alertCountsSchema = new mongoose.Schema(
         intrusion: { type: Number, default: 0 },
         crowd: { type: Number, default: 0 },
         abnormal: { type: Number, default: 0 },
+        loitering: { type: Number, default: 0 },
         total: { type: Number, default: 0 },
     },
     { _id: false }
@@ -19,6 +20,9 @@ const dailyStatSchema = new mongoose.Schema(
         maleCount: { type: Number, default: 0 },
         femaleCount: { type: Number, default: 0 },
         unknownGenderCount: { type: Number, default: 0 },
+
+        totalDwellSeconds: { type: Number, default: 0 },
+        dwellSampleCount: { type: Number, default: 0 },
 
         alertCounts: { type: alertCountsSchema, default: () => ({}) },
 

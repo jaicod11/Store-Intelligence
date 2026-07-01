@@ -1,12 +1,13 @@
 const express = require('express');
 const router = express.Router();
+const { format } = require('date-fns');
 const {
     getTodayStats,
     getStatsByDate,
     getStatsByRange,
+    getHourlyPeopleCounts,
 } = require('../services/statsService');
 
-// GET /api/stats/today
 router.get('/today', async (req, res, next) => {
     try {
         const data = await getTodayStats();
@@ -14,8 +15,16 @@ router.get('/today', async (req, res, next) => {
     } catch (err) { next(err); }
 });
 
-// GET /api/stats?date=YYYY-MM-DD
-// GET /api/stats?from=YYYY-MM-DD&to=YYYY-MM-DD
+// NEW — GET /api/stats/hourly?date=YYYY-MM-DD
+router.get('/hourly', async (req, res, next) => {
+    try {
+        const { date } = req.query;
+        const targetDate = date || format(new Date(), 'yyyy-MM-dd');
+        const data = await getHourlyPeopleCounts(targetDate);
+        res.json({ success: true, data });
+    } catch (err) { next(err); }
+});
+
 router.get('/', async (req, res, next) => {
     try {
         const { date, from, to } = req.query;

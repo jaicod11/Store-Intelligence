@@ -39,3 +39,11 @@ class ZoneConfig(BaseModel):
     name: str
     points: list[list[float]]
     camera_id: str = "cam1"
+
+
+class DwellEvent(BaseModel):
+    event_type: str = "dwell"
+    timestamp: datetime = Field(default_factory=utc_now)
+    camera_id: str = "cam1"
+    track_id: int
+    dwell_seconds: float

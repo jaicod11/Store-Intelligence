@@ -6,7 +6,7 @@ const alertSchema = new mongoose.Schema(
         cameraId: { type: String, default: 'cam1', index: true },
         alertType: {
             type: String,
-            enum: ['intrusion', 'crowd', 'abnormal'],
+            enum: ['intrusion', 'crowd', 'abnormal', 'loitering'],
             required: true,
             index: true,
         },

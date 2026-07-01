@@ -148,4 +148,31 @@ async function _flushToDB() {
     );
 }
 
-module.exports = { processDetectionEvent, processAlertEvent };
+async function processDwellEvent(event) {
+    try {
+        const ts = event.timestamp ? new Date(event.timestamp) : new Date();
+        const date = format(ts, 'yyyy-MM-dd');
+        const cameraId = event.camera_id || 'cam1';
+
+        await DailyStat.findOneAndUpdate(
+            { date, cameraId },
+            {
+                $inc: {
+                    totalDwellSeconds: event.dwell_seconds || 0,
+                    dwellSampleCount: 1,
+                },
+                $set: { updatedAt: new Date() },
+                $setOnInsert: {
+                    date,
+                    cameraId,
+                    alertCounts: { intrusion: 0, crowd: 0, abnormal: 0, loitering: 0, total: 0 },
+                },
+            },
+            { upsert: true }
+        );
+    } catch (err) {
+        console.error('[eventProcessor] Dwell event processing failed:', err.message);
+    }
+}
+
+module.exports = { processDetectionEvent, processAlertEvent, processDwellEvent };

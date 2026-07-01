@@ -1,19 +1,8 @@
-/**
- * Alert Engine — secondary deduplication and rule layer.
- *
- * The CV service already runs primary deduplication (intrusion cooldown,
- * crowd consecutive-frame check). This engine provides a second safety net
- * inside the Node.js service so that even if an alert event is published
- * twice to Redis, only one gets persisted and emitted to the dashboard.
- *
- * It also handles severity classification and message normalisation.
- */
-
-// Per-alert-type cooldown periods (milliseconds)
 const COOLDOWN_MS = {
-    intrusion: 12_000,   // 12 s
-    crowd: 30_000,   // 30 s
-    abnormal: 20_000,   // 20 s
+    intrusion: 12_000,
+    crowd: 30_000,
+    abnormal: 20_000,
+    loitering: 60_000,
 };
 
 // In-memory map:  `${cameraId}:${alertType}` → last processed timestamp (ms)
@@ -59,6 +48,9 @@ function classifySeverity(alertType, metadata = {}) {
         case 'abnormal':
             return 'high';
 
+        case 'loitering':
+            return 'medium';
+
         case 'crowd': {
             const count = metadata.count ?? 0;
             const threshold = metadata.threshold ?? 10;
@@ -91,6 +83,9 @@ function formatMessage(alertType, rawMessage, metadata = {}) {
 
         case 'abnormal':
             return rawMessage || 'Abnormal activity detected in camera feed';
+
+        case 'loitering':
+            return rawMessage || 'Person loitering detected';
 
         default:
             return rawMessage ?? 'Unknown alert';

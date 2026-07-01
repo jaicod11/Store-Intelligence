@@ -1,5 +1,5 @@
 from pydantic_settings import BaseSettings
-from typing import Optional
+
 
 class Settings(BaseSettings):
     gemini_api_key: str
@@ -12,7 +12,10 @@ class Settings(BaseSettings):
     gender_cache_ttl: int = 30
     frame_skip: int = 2
 
-    # YOLO COCO class ID for person only
+    # NEW — dwell / loitering tracking
+    loitering_threshold_sec: int = 90   # seconds before a person is "loitering"
+    dwell_exit_grace_sec: int = 5       # seconds of absence before a track is considered "exited"
+
     person_class_id: int = 0
 
     class Config:

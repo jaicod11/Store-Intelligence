@@ -4,9 +4,10 @@ import time
 import numpy as np
 from ultralytics import YOLO
 from config import settings
-from schemas.events import DetectionEvent, AlertEvent, PersonDetection
+from schemas.events import DetectionEvent, AlertEvent, PersonDetection, DwellEvent
 from core.zone_manager import zone_manager
 from core.crowd_detector import crowd_detector
+from core.dwell_tracker import dwell_tracker
 from core.gemini_client import detect_gender, detect_abnormal_activity, clear_gender_cache
 from publishers.redis_publisher import publisher
 import logging
@@ -81,7 +82,7 @@ class DetectionPipeline:
             persist=True,
             verbose=False,
             conf=0.25,
-            classes=[settings.person_class_id],   # person only
+            classes=[settings.person_class_id],
         )
 
         box_count = len(results[0].boxes) if results and results[0].boxes is not None else 0
@@ -116,8 +117,29 @@ class DetectionPipeline:
             if isinstance(gender, str):
                 person.gender = gender
 
-        # ── Intrusion detection ───────────────────────────────────────
+        # ── Dwell / loitering tracking ──────────────────────────────────
         _now = time.time()
+        active_ids = [p.track_id for p in people if p.track_id != -1]
+        dwell_result = dwell_tracker.update(active_ids, _now)
+
+        for tid in dwell_result["loitering_tracks"]:
+            alert = AlertEvent(
+                camera_id=self._camera_id,
+                alert_type="loitering",
+                message=f"Person loitering — present for over {settings.loitering_threshold_sec}s",
+                severity="medium",
+                metadata={"track_id": tid, "threshold_sec": settings.loitering_threshold_sec},
+            )
+            await publisher.publish_alert(alert)
+
+        for tid, dwell_sec in dwell_result["exited_tracks"]:
+            await publisher.publish_dwell(DwellEvent(
+                camera_id=self._camera_id,
+                track_id=tid,
+                dwell_seconds=round(dwell_sec, 1),
+            ))
+
+        # ── Intrusion detection ───────────────────────────────────────
         for person in people:
             violated_zone = zone_manager.check_intrusion(
                 person.bbox, self._camera_id

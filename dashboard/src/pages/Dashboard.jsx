@@ -11,6 +11,11 @@ import PeopleChart from '../components/charts/PeopleChart';
 import AlertsChart from '../components/charts/AlertsChart';
 import AlertPanel from '../components/AlertPanel';
 
+function formatDwell(seconds) {
+    if (!seconds) return '0m';
+    return `${(seconds / 60).toFixed(1)}m`;
+}
+
 export default function Dashboard({ onNavigate }) {
     useSocket();
     useStats();
@@ -48,7 +53,12 @@ export default function Dashboard({ onNavigate }) {
                         {/* MOCK — multi-camera registry not built yet */}
                         <StatCard label="Cameras Online" value="8" sub="of 9 total cameras" color="info" />
                         {/* MOCK — dwell-time tracking not built yet */}
-                        <StatCard label="Avg Dwell Time" value="4.2m" sub="per customer visit" color="warning" />
+                        <StatCard
+                            label="Avg Dwell Time"
+                            value={formatDwell(todayStats?.avgDwellSeconds)}
+                            sub="per customer visit"
+                            color="warning"
+                        />
                     </div>
 
                     {/* Camera tiles — tile 1 REAL, tiles 2 & 3 MOCK */}

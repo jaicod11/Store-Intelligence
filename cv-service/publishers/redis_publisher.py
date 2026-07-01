@@ -1,13 +1,14 @@
 import redis.asyncio as aioredis
 import json
 from config import settings
-from schemas.events import DetectionEvent, AlertEvent
+from schemas.events import DetectionEvent, AlertEvent, DwellEvent
 import logging
 
 logger = logging.getLogger(__name__)
 
 CHANNEL_DETECTIONS = "store:detections"
 CHANNEL_ALERTS = "store:alerts"
+CHANNEL_DWELL = "store:dwell"
 
 
 class RedisPublisher:
@@ -36,6 +37,13 @@ class RedisPublisher:
         payload = event.model_dump(mode="json")
         await self._client.publish(CHANNEL_ALERTS, json.dumps(payload))
         logger.info(f"Alert published: [{event.alert_type}] {event.message}")
+
+    async def publish_dwell(self, event: DwellEvent) -> None:
+        if not self._client:
+            return
+        payload = event.model_dump(mode="json")
+        await self._client.publish(CHANNEL_DWELL, json.dumps(payload))
+        logger.info(f"Dwell published: track {event.track_id} → {event.dwell_seconds}s")
 
 
 publisher = RedisPublisher()
